@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace ApiVersionningTest.Controllers
 {
 	[ApiController]
-	[ApiVersion("1")]
+	[ApiVersion("1.0")]
 	[Route("api/weather/v{api-version:apiVersion}/ByPathSeparateClasses")]
 	public class ByPathSeparateClassesV1Controller : ControllerBase
 	{
@@ -20,7 +20,7 @@ namespace ApiVersionningTest.Controllers
 	}
 
 	[ApiController]
-	[ApiVersion("2")]
+	[ApiVersion("2.0")]
 	[Route("api/weather/v{api-version:apiVersion}/ByPathSeparateClasses")]
 	public class ByPathSeparateClassesV2Controller : ControllerBase
 	{
