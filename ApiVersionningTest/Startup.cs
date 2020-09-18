@@ -1,10 +1,15 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
 namespace ApiVersionningTest
 {
@@ -24,8 +29,9 @@ namespace ApiVersionningTest
 
 			services.AddApiVersioning(o =>
 			{
-				//o.AssumeDefaultVersionWhenUnspecified = true;
-				//o.DefaultApiVersion = new ApiVersion(1, 0);
+				o.AssumeDefaultVersionWhenUnspecified = true;
+				o.DefaultApiVersion = new ApiVersion(1, 0);
+				o.ApiVersionReader = new UrlSegmentApiVersionReader();
 				//o.ApiVersionReader = new HeaderApiVersionReader("x-api-version");
 			});
 
@@ -36,6 +42,21 @@ namespace ApiVersionningTest
 
 			services.AddSwaggerGen(options =>
 			{
+				options.DocInclusionPredicate((docName, apiDesc) =>
+				{
+					if (!apiDesc.TryGetMethodInfo(out MethodInfo methodInfo))
+					{
+						return false;
+					}
+
+					IEnumerable<ApiVersion> versions = methodInfo.DeclaringType
+						.GetCustomAttributes(true)
+						.OfType<ApiVersionAttribute>()
+						.SelectMany(a => a.Versions);
+
+					return versions.Any(v => $"v{v.ToString()}" == docName);
+				});
+
 				options.SwaggerDoc("v1.0", new OpenApiInfo()
 				{
 					Title = "My API v1.0",
@@ -80,6 +101,7 @@ namespace ApiVersionningTest
 			{
 				c.DefaultModelsExpandDepth(0);
 				c.SwaggerEndpoint($"/swagger/v1.0/swagger.json", "my API 1.0");
+				c.SwaggerEndpoint($"/swagger/v2.0/swagger.json", "my API 2.0");
 			});
 		}
 	}
